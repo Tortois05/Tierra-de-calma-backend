@@ -36,20 +36,23 @@ app.post("/create_preference", async (req, res) => {
     }
 
     const preference = {
-      items: items.map(i => ({
-        title: i.title,
-        quantity: i.quantity,
-        unit_price: i.unit_price,
-        currency_id: "ARS"
-      })),
-      back_urls: {
-        success: `${FRONT_ORIGIN}/chocolate/pago-exitoso.html`,
-        pending: `${FRONT_ORIGIN}/chocolate/pago-pendiente.html`,
-        failure: `${FRONT_ORIGIN}/chocolate/pago-fallido.html`
-      },
-      auto_return: "approved",
-      notification_url: `${process.env.PUBLIC_BACKEND_URL}/webhook`
-    };
+  items: items.map(i => ({
+    title: i.title,
+    quantity: i.quantity,
+    unit_price: i.unit_price,
+    currency_id: "ARS"
+  })),
+  back_urls: {
+  success: `${FRONT_ORIGIN}/pago-exitoso.html`,
+  pending: `${FRONT_ORIGIN}/pago-pendiente.html`,
+  failure: `${FRONT_ORIGIN}/pago-fallido.html`
+},
+  auto_return: "approved",
+  ...(process.env.PUBLIC_BACKEND_URL
+    ? { notification_url: `${process.env.PUBLIC_BACKEND_URL}/webhook` }
+    : {})
+};
+
 
     const r = await fetch(
       "https://api.mercadopago.com/checkout/preferences",
