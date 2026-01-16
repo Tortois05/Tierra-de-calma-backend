@@ -43,9 +43,9 @@ app.post("/create_preference", async (req, res) => {
     currency_id: "ARS"
   })),
       back_urls: {
-  success: `${FRONT_ORIGIN}/pag/chocolate/pago-exitoso.html`,
-  pending: `${FRONT_ORIGIN}/pag/chocolate/volver.html`,
-  failure: `${FRONT_ORIGIN}/pag/chocolate/volver.html`
+  success: `${FRONT_ORIGIN}//pago-exitoso.html`,
+  pending: `${FRONT_ORIGIN}//volver.html`,
+  failure: `${FRONT_ORIGIN}//volver.html`
 },
 auto_return: "approved",
 
@@ -85,6 +85,7 @@ app.post("/webhook", (req, res) => {
 app.listen(process.env.PORT || 3000, () =>
   console.log("Backend corriendo")
 );
+
 
 
 
