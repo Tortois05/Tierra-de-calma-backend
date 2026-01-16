@@ -7,9 +7,23 @@ const FRONT_ORIGIN = "https://tierradecalma.com";
 const MP_ACCESS_TOKEN = process.env.MP_ACCESS_TOKEN;
 
 app.use(express.json());
+const ALLOWED_ORIGINS = [
+  "https://tierradecalma.com",
+  "https://www.tierradecalma.com"
+];
+
 app.use(cors({
-  origin: [FRONT_ORIGIN, "https://www.tierradecalma.com"]
+  origin: (origin, cb) => {
+    if (!origin) return cb(null, true); // curl/postman
+    if (ALLOWED_ORIGINS.includes(origin)) return cb(null, true);
+    return cb(new Error("CORS blocked: " + origin));
+  },
+  methods: ["GET", "POST", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
 }));
+
+app.options("*", cors());
+
 
 app.get("/", (_, res) => res.send("Backend Tierra de Calma OK"));
 
