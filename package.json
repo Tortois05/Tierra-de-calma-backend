@@ -1,5 +1,5 @@
 {
-  "name": "tierradecalma-payments",
+  "name": "tierra-de-calma-backend",
   "version": "1.0.0",
   "type": "module",
   "main": "server.js",
@@ -8,7 +8,9 @@
   },
   "dependencies": {
     "cors": "^2.8.5",
-    "express": "^4.18.3",
-    "nodemailer": "^7.0.12"
+    "express": "^4.19.2",
+    "nodemailer": "^6.9.14"
   }
 }
+}
+
