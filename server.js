@@ -249,6 +249,33 @@ note = payment.metadata?.note || "";
   }
 });
 
+app.post("/send_contact", async (req, res) => {
+  try {
+    const { name, email, message } = req.body;
+
+    if (!name || !email || !message) {
+      return res.status(400).json({ error: "Faltan datos" });
+    }
+
+    await sendMail({
+      to: OWNER_MAIL,
+      subject: `📩 Nueva consulta desde Tierra de Calma`,
+      html: `
+        <h2>Nueva consulta</h2>
+        <p><b>Nombre:</b> ${name}</p>
+        <p><b>Email:</b> ${email}</p>
+        <hr>
+        <p>${message}</p>
+      `
+    });
+
+    res.json({ ok: true });
+  } catch (err) {
+    console.error("Contact form error:", err);
+    res.status(500).json({ error: "Error enviando consulta" });
+  }
+});
+
 app.listen(process.env.PORT || 3000, () => console.log("Backend corriendo"));
 
 
