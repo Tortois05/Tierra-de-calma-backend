@@ -69,7 +69,7 @@ const processedPayments = new Set();
 // =============================
 app.post("/create_preference", async (req, res) => {
   try {
-    const { items, payerEmail } = req.body;
+    const { items, payerEmail, customer = {}, note = "" } = req.body;
 
     if (!Array.isArray(items) || items.length === 0) {
       return res.status(400).json({ error: "Items vacíos" });
@@ -85,6 +85,13 @@ app.post("/create_preference", async (req, res) => {
         unit_price: Number(i.unit_price || 0),
         currency_id: "ARS",
       })),
+
+      metadata: {
+  order_id: orderId,
+  items_json: JSON.stringify(items),
+  customer_json: JSON.stringify(customer),
+  note: String(note || ""),
+},
 
       // Si el frontend manda email (Google login / login demo), lo metemos.
       ...(payerEmail ? { payer: { email: String(payerEmail) } } : {}),
@@ -164,21 +171,61 @@ app.post("/webhook", async (req, res) => {
     const amount = payment.transaction_amount || 0;
     const orderId = payment.external_reference || `TDC-${pid}`;
 
+      let orderItems = [];
+let customer = {};
+let note = "";
+
+try {
+  orderItems = JSON.parse(payment.metadata?.items_json || "[]");
+} catch {}
+
+try {
+  customer = JSON.parse(payment.metadata?.customer_json || "{}");
+} catch {}
+
+note = payment.metadata?.note || "";
+
     // Mail a la dueña
     if (OWNER_MAIL) {
-      await sendMail({
-        to: OWNER_MAIL,
-        subject: `🧾 Venta aprobada — ${orderId}`,
-        html: `
-          <h2>Nueva venta aprobada ✅</h2>
-          <p><b>Pedido:</b> ${orderId}</p>
-          <p><b>Cliente:</b> ${buyerEmail || "Sin email"}</p>
-          <p><b>Total:</b> $${amount}</p>
-          <p><b>Payment ID:</b> ${pid}</p>
-        `,
-      });
-    }
+  const itemsHtml = orderItems.length
+    ? orderItems.map((item) => `
+        <li>
+          ${item.quantity || 1}x ${item.title || "Producto"} — $${item.unit_price || 0}
+        </li>
+      `).join("")
+    : "<li>No se recibieron productos detallados.</li>";
 
+  await sendMail({
+    to: OWNER_MAIL,
+    subject: `🧾 Nueva venta aprobada — ${orderId}`,
+    html: `
+      <h2>Nueva venta aprobada ✅</h2>
+
+      <p><b>Pedido:</b> ${orderId}</p>
+      <p><b>Total:</b> $${amount}</p>
+      <p><b>Payment ID:</b> ${pid}</p>
+
+      <hr>
+
+      <h3>Datos del cliente</h3>
+      <p><b>Nombre:</b> ${customer.name || "Sin informar"}</p>
+      <p><b>Documento:</b> ${customer.document || "Sin informar"}</p>
+      <p><b>Dirección:</b> ${customer.address || "Sin informar"}</p>
+      <p><b>Email:</b> ${buyerEmail || customer.email || "Sin email"}</p>
+      <p><b>Teléfono:</b> ${customer.phone || "Sin informar"}</p>
+
+      <hr>
+
+      <h3>Productos comprados</h3>
+      <ul>${itemsHtml}</ul>
+
+      <hr>
+
+      <h3>Detalle opcional</h3>
+      <p>${note || "Sin aclaraciones."}</p>
+    `,
+  });
+}
     // Mail al cliente
     if (buyerEmail) {
       await sendMail({
