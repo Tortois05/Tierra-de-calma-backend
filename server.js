@@ -159,6 +159,8 @@ app.post("/webhook", async (req, res) => {
     });
 
     const payment = await r.json();
+    
+    console.log("METADATA:", payment.metadata);
 
     if (!r.ok) {
       console.error("MP payment fetch error:", payment);
