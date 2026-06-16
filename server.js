@@ -226,21 +226,44 @@ note = payment.metadata?.note || "";
     `,
   });
 }
-    // Mail al cliente
-    if (buyerEmail) {
-      await sendMail({
-        to: buyerEmail,
-        subject: `✨ Gracias por tu compra — ${orderId}`,
-        html: `
-          <h2>¡Gracias por tu compra! 💚</h2>
-          <p>Tu pago fue aprobado correctamente.</p>
-          <p><b>Pedido:</b> ${orderId}</p>
-          <p><b>Total:</b> $${amount}</p>
-          <p>En breve nos pondremos en contacto para coordinar la entrega.</p>
-          <p><b>Tierra de Calma</b></p>
-        `,
-      });
-    }
+   // Mail al cliente
+if (buyerEmail) {
+
+  const itemsHtml = orderItems.length
+    ? `
+      <h3>Productos comprados</h3>
+      <ul>
+        ${orderItems.map(item => `
+          <li>
+            ${item.quantity} × ${item.title}
+            - $${item.unit_price}
+          </li>
+        `).join("")}
+      </ul>
+    `
+    : `<p><i>No fue posible obtener el detalle del pedido.</i></p>`;
+
+  await sendMail({
+    to: buyerEmail,
+    subject: `✨ Gracias por tu compra — ${orderId}`,
+    html: `
+      <h2>¡Gracias por tu compra! 💚</h2>
+
+      <p>Tu pago fue aprobado correctamente.</p>
+
+      <p><b>Pedido:</b> ${orderId}</p>
+      <p><b>Total:</b> $${amount}</p>
+
+      ${itemsHtml}
+
+      <hr>
+
+      <p>En breve nos pondremos en contacto para coordinar la entrega.</p>
+
+      <p><b>Tierra de Calma</b></p>
+    `,
+  });
+}
 
     return res.sendStatus(200);
   } catch (err) {
